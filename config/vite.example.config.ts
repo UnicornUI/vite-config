@@ -1,43 +1,30 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
+import path from "path";
 import postcssPresetEnv from "postcss-preset-env";
-import ViteAlias from "./plugins/ViteAlias"
-import CreateHtmlPlugin from "./plugins/CreateHtmlPlugin";
-// import { viteMockServe } from "vite-plugin-mock"
-import VitePluginMock from "./plugins/VitePluginMock";
-import viteCompression  from "vite-plugin-compression";
 
-// https://vitejs.dev/config/
-export default defineConfig({
+export default defineConfig ({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+      "@/assets": path.resolve(__dirname, "./src/assets/")
+    }
+  },
   server: {
     open: true,
     port: 3000,
-    proxy: {
-      "/public": {
-        target: "http://baidu.com",
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/public/, "/api")
-      }
-    }
   },
-  plugins: [
-    vue(), 
-    ViteAlias(), 
-    CreateHtmlPlugin({
-      inject: {
-        data: {
-          title: "测试 html 插件"
-        }
-      }
-    }),
-    // viteMockServe(),
-    VitePluginMock(),
-    viteCompression(),
-  ],
-  build:{
-    minify: false,
-    rollupOptions: {
-      output: {
+  build: {
+    rollupOptions: {  // 配置 rollup 的一些构策略
+      input: {
+        // 配置多个入口
+        main: path.resolve(__dirname, "./index.html"),
+        product: path.resolve(__dirname, "./product.html"),
+      },
+      output: { // 控制输出
+        // 配置打包资源文件的名称规则
+        // rollup 中的 hash 表示文件内容和文件名称组合计算得到的结果
+        assetFileNames: "[hash].[name].[ext]",
         manualChunks: (id: string) => {
           console.log("id", id);
           if (id.includes("node_modules")){
@@ -45,9 +32,19 @@ export default defineConfig({
           }
         }
       }
-    }
+    },
+    // 资源文件大小控制，在限定的范围内直接使用 base64 进行编码放在js文件中
+    // 超过限定值的资源，会以独立的图片资源文件存在
+    assetsInlineLimit: 4094, // 4kb
+    // 最终整个打包内容以什么文件夹名称包裹
+    // 默认是 `dist`
+    outDir: "dist",
+    // 最终输出的静态资源文件以什么文件夹名称包裹，
+    // 默认是 assets
+    assetsDir: "static",
   },
-  envDir: "./environment",
+  // 挂载的插件
+  plugins: [vue()],
   envPrefix: "ENV_",
   css: {
     // 对 css 模块化的默认配置的覆盖
@@ -108,5 +105,6 @@ export default defineConfig({
     postcss: {
       plugins: [postcssPresetEnv()]
     }
-  },
+  }
 });
+

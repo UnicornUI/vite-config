@@ -1,0 +1,16 @@
+:root {
+  --globalGreen: #00ff00;
+}
+
+.content {
+  width: 800px;
+  .main {
+    background: green;
+    padding: (100px / 2);
+    margin: 100px / 2;
+    background-color: red;
+    filter: blur(20px);
+    width: clamp(100px, 30%, 200px);
+  }
+}
+
